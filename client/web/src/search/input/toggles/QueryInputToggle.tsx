@@ -62,13 +62,15 @@ export class QueryInputToggle extends React.Component<ToggleProps> {
     public render(): JSX.Element | null {
         const Icon = this.props.icon
 
-        let disabled = false
         let tooltipValue = `${this.props.isActive ? 'Disable' : 'Enable'} ${this.props.title.toLowerCase()}`
+        let disabled = false
+        let onToggle = this.props.onToggle
         if (this.props.disabledRules) {
             for (const rule of this.props.disabledRules) {
                 if (rule.condition) {
                     disabled = true
                     tooltipValue = rule.reason
+                    onToggle = (): void => undefined
                     break
                 }
             }
@@ -77,7 +79,7 @@ export class QueryInputToggle extends React.Component<ToggleProps> {
         return (
             <div
                 ref={this.toggleCheckbox}
-                onClick={this.props.onToggle}
+                onClick={onToggle}
                 className={classNames(
                     'btn btn-icon icon-inline toggle-container__toggle test-regexp-toggle',
                     this.props.className,

@@ -41,3 +41,32 @@ export const findGlobalFilter = (query: string, field: string): Filter | undefin
     }
     return filter
 }
+
+export const hasSubexpression = (query: string, field: string): boolean => {
+    const result = scanSearchQuery(query)
+    if (result.type === 'success') {
+        let depth = 0
+        let seenField = false
+        for (const token of result.term) {
+            if (token.type === 'openingParen') {
+                depth = depth + 1
+            }
+            if (token.type === 'closingParen') {
+                depth = depth - 1
+            }
+            if (token.type === 'filter' && token.field.value.toLowerCase() === field) {
+                if (seenField) {
+                    // More than one of this field.
+                    return true
+                }
+                if (depth > 0) {
+                    // Inside a grouped expression.
+                    return true
+                }
+                seenField = true
+                continue
+            }
+        }
+    }
+    return false
+}
