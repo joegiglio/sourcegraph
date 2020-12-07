@@ -63,6 +63,11 @@ type ChangesetSpecsConnectionArgs struct {
 	After *string
 }
 
+type ChangesetApplyPreviewConnectionArgs struct {
+	First int32
+	After *string
+}
+
 type CampaignArgs struct {
 	Namespace string
 	Name      string
@@ -128,6 +133,7 @@ type CampaignSpecResolver interface {
 	OriginalInput() (string, error)
 	ParsedInput() (JSONValue, error)
 	ChangesetSpecs(ctx context.Context, args *ChangesetSpecsConnectionArgs) (ChangesetSpecConnectionResolver, error)
+	ApplyPreview(ctx context.Context, args *ChangesetApplyPreviewConnectionArgs) (ChangesetSpecConnectionResolver, error)
 
 	Description() CampaignDescriptionResolver
 
@@ -153,6 +159,19 @@ type CampaignDescriptionResolver interface {
 	Description() string
 }
 
+type ChangesetApplyPreviewResolver interface {
+	Operations(ctx context.Context) ([]campaigns.ReconcilerOperation, error)
+	Delta(ctx context.Context) (ChangesetSpecDeltaResolver, error)
+	ChangesetSpec(ctx context.Context) (ChangesetSpecResolver, error)
+	Changeset(ctx context.Context) (ChangesetResolver, error)
+}
+
+type ChangesetApplyPreviewConnectionResolver interface {
+	TotalCount(ctx context.Context) (int32, error)
+	PageInfo(ctx context.Context) (*graphqlutil.PageInfo, error)
+	Nodes(ctx context.Context) ([]ChangesetApplyPreviewResolver, error)
+}
+
 type ChangesetSpecConnectionResolver interface {
 	TotalCount(ctx context.Context) (int32, error)
 	PageInfo(ctx context.Context) (*graphqlutil.PageInfo, error)
@@ -166,9 +185,7 @@ type ChangesetSpecResolver interface {
 
 	ExpiresAt() *DateTime
 
-	Operations(ctx context.Context) ([]campaigns.ReconcilerOperation, error)
-	Delta(ctx context.Context) (ChangesetSpecDeltaResolver, error)
-	Changeset(ctx context.Context) (ChangesetResolver, error)
+	ApplyPreview(ctx context.Context) (ChangesetApplyPreviewResolver, error)
 
 	ToHiddenChangesetSpec() (HiddenChangesetSpecResolver, bool)
 	ToVisibleChangesetSpec() (VisibleChangesetSpecResolver, bool)
@@ -328,6 +345,8 @@ type ChangesetResolver interface {
 	ReconcilerState() campaigns.ReconcilerState
 	ExternalState() *campaigns.ChangesetExternalState
 	Campaigns(ctx context.Context, args *ListCampaignsArgs) (CampaignsConnectionResolver, error)
+
+	ApplyPreview(ctx context.Context) (ChangesetApplyPreviewResolver, error)
 
 	ToExternalChangeset() (ExternalChangesetResolver, bool)
 	ToHiddenExternalChangeset() (HiddenExternalChangesetResolver, bool)
